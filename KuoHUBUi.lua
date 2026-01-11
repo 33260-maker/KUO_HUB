@@ -305,8 +305,7 @@ local Players = game:GetService("Players")
                                             displayName.TextYAlignment = Enum.TextYAlignment.Top          
                                             displayName.TextColor3 = Color3.new(1,1,1)          
                                             displayName.ZIndex = 11          
-                                            displayName.AutomaticSize = Enum.AutomaticSize.Y          
-      
+                                            displayName.AutomaticSize = Enum.AutomaticSize.Y       
                                             -- Username (BOTTOM, NOT CUT)          
                                             local username = Instance.new("TextLabel", profile)          
                                             username.BackgroundTransparency = 1          
@@ -320,4 +319,6 @@ local Players = game:GetService("Players")
                                             username.TextYAlignment = Enum.TextYAlignment.Top          
                                             username.TextColor3 = Color3.fromRGB(180,180,180)          
                                             username.ZIndex = 11          
-                                            username.AutomaticSize = Enum.AutomaticSize.Y          
+                                            username.AutomaticSize = Enum.AutomaticSize.Y 
+_G.KuoHub = _G.KuoHub or {}
+_G.KuoHub.CreateTab = CreateTab
