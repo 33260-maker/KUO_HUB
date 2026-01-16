@@ -536,6 +536,6 @@ _G.KuoHub = { CreateTab = CreateTab }
                                             username.TextYAlignment = Enum.TextYAlignment.Top          
                                             username.TextColor3 = Color3.fromRGB(180,180,180)          
                                             username.ZIndex = 11          
-                                            username.AutomaticSize = Enum.AutomaticSize.Y 
-_G.KuoHub = _G.KuoHub or {}
+                                            username.AutomaticSize = Enum.AutomaticSize.Y
+_G.KuoHub = _G.KuoHub or {}  
 _G.KuoHub.CreateTab = CreateTab
