@@ -1,4 +1,4 @@
---// Kuo Hub | Rainbow Glow UI Full v2.4 (Fixed Minimize Bug & Small Profile)
+--// Kuo Hub | Rainbow Glow UI Full v2.5 (Fixed Minimize Bug & Small Profile)
 
 local Players = game:GetService("Players")
 local UIS = game:GetService("UserInputService")
@@ -61,7 +61,7 @@ tweenStrokeColor(mainStroke)
 local title = Instance.new("TextLabel", main)
 title.Size = UDim2.new(1,0,0,40)
 title.BackgroundColor3 = Color3.fromRGB(25,25,25)
-title.Text = "Kuo Hub v2.4"
+title.Text = "Kuo Hub v2.5"
 title.TextColor3 = Color3.fromRGB(255,255,255)
 title.Font = Enum.Font.GothamBold
 title.TextSize = 16
