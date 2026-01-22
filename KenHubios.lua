@@ -17,7 +17,7 @@ Tab1:AddDiscordInvite({
     Name = "kuo hub",
     Description = "Join server",
     Logo = "rbxassetid://103308551113442",
-    Invite = "https://discord.gg/Apn2j9Fez",
+    Invite = "https://discord.gg/Nv3uwZ28QZ",
 })
 
 redzlib:SetTheme("Dark")
