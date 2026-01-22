@@ -1,9 +1,9 @@
-local redzlib = loadstring(game:HttpGet("https://raw.githubusercontent.com/tbao143/Library-ui/refs/heads/main/Redzhubui"))()
+local kuolib = loadstring(game:HttpGet("https://raw.githubusercontent.com/33260-maker/KUO_HUB/refs/heads/main/Redzhubui.lua"))()
 
-local Window = redzlib:MakeWindow({
-  Title = "KEN Hub",
-  SubTitle = "by Ken9999",
-  SaveFolder = "testando | redz lib v5.lua"
+local Window = kuolib:MakeWindow({
+  Title = "kuo Hub",
+  SubTitle = "by kuo&ken",
+  SaveFolder = "testando | kuo lib v5.lua"
 })
 
 Window:AddMinimizeButton({
@@ -14,7 +14,7 @@ Window:AddMinimizeButton({
 local Tab1 = Window:MakeTab({"Um", "cherry"})
 
 Tab1:AddDiscordInvite({
-    Name = "กลุ่มแจกโปร",
+    Name = "kuo hub",
     Description = "Join server",
     Logo = "rbxassetid://103308551113442",
     Invite = "https://discord.gg/Apn2j9Fez",
