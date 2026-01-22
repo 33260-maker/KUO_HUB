@@ -20,9 +20,9 @@ Tab1:AddDiscordInvite({
     Invite = "https://discord.gg/Nv3uwZ28QZ",
 })
 
-redzlib:SetTheme("Dark")
-redzlib:SetTheme("Darker")
-redzlib:SetTheme("Purple")
+kuolib:SetTheme("Dark")
+kuolib:SetTheme("Darker")
+kuolib:SetTheme("Purple")
 
 Window:SelectTab(Tab1)
 
