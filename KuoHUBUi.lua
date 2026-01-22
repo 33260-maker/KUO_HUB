@@ -250,5 +250,45 @@ username.ClipsDescendants = true
 username.TextXAlignment = Enum.TextXAlignment.Left
 username.TextYAlignment = Enum.TextYAlignment.Center
 -- Export Library
-_G.KuoHub = _G.KuoHub or {}  
-_G.KuoHub.CreateTab = CreateTab
+Hub.CreateTab("Farm")
+Hub:CreateTab("Farm")
+
+Tab.AddToggle("Auto", func)
+Tab:AddToggle("Auto", func)
+
+Tab.AddButton("Test", func)
+Tab:AddSlider(...)
+
+repeat task.wait() until _G.KuoHub
+
+local function WrapObject(obj)
+    return setmetatable({}, {
+        __index = function(_, key)
+            local value = obj[key]
+
+            if typeof(value) == "function" then
+                return function(...)
+                    local args = { ... }
+
+                    -- ถ้าเรียกด้วย :
+                    if args[1] == obj then
+                        table.remove(args, 1)
+                    end
+
+                    local result = value(unpack(args))
+
+                    -- ถ้าฟังก์ชันคืน table (เช่น Tab)
+                    if typeof(result) == "table" then
+                        return WrapObject(result)
+                    end
+
+                    return result
+                end
+            end
+
+            return value
+        end
+    })
+end
+
+_G.KuoHub = WrapObject(_G.KuoHub)
