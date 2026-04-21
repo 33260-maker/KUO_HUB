@@ -1,7 +1,7 @@
 local Window = loadstring(game:HttpGet("https://raw.githubusercontent.com/malcompetchthong-dev/ITKuo/refs/heads/main/KUOHUBUI.lua"))()
 
 Window:MakeWindow({
-Title = "Kuo Hub [Beta]",
+Title = "Kuo Hub [Beta-Blox Fruits]",
 })
 
 Window:AddMinimizeButton({
