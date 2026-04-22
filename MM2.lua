@@ -268,66 +268,120 @@ end
 end)
 
 -- =========================
--- AUTO SHOOT (FIXED)
+-- 🔫 AUTO GUN SYSTEM (FULL + 50/50 AIM)
 -- =========================
+
+-- 🔍 หา Murderer
 local function findMurderer()
-for _, plr in ipairs(Players:GetPlayers()) do
-if plr ~= player and plr.Character and getRole(plr) == "Murderer" then
-return plr
-end
-end
+    for _, plr in ipairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character and getRole(plr) == "Murderer" then
+            return plr
+        end
+    end
 end
 
+-- =========================
+-- 🎲 RANDOM PART (50% HEAD / 50% BODY)
+-- =========================
+local function getRandomPart50(targetChar)
+    local head = targetChar:FindFirstChild("Head")
+
+    -- 50% ยิงหัว
+    if head and math.random() < 0.5 then
+        return head
+    end
+
+    -- 50% ยิงส่วนอื่น
+    local parts = {}
+    for _, v in ipairs(targetChar:GetDescendants()) do
+        if v:IsA("BasePart") and v.Name ~= "Head" then
+            table.insert(parts, v)
+        end
+    end
+
+    if #parts > 0 then
+        return parts[math.random(1, #parts)]
+    end
+
+    return head
+end
+
+-- =========================
+-- 🎯 PREDICT AIM (50/50)
+-- =========================
 local function getLeadCFrame(targetChar, originPos)
-local head = targetChar:FindFirstChild("Head")
-local root = targetChar:FindFirstChild("HumanoidRootPart")
-if not head or not root then return end
+    local part = getRandomPart50(targetChar)
+    local root = targetChar:FindFirstChild("HumanoidRootPart")
+    if not part or not root then return end
 
--- ✅ ใช้ตัวใหม่
-local velocity = root.AssemblyLinearVelocity
+    local velocity = root.AssemblyLinearVelocity
 
-local distance = (head.Position - originPos).Magnitude
-local predictTime = math.clamp(distance / 200, 0.15, 0.35)
+    local distance = (part.Position - originPos).Magnitude
+    local predictTime = math.clamp(distance / 200, 0.15, 0.35)
 
-local predictedPos = head.Position + (velocity * predictTime)
+    local predictedPos = part.Position + (velocity * predictTime)
 
--- ชดเชยการกระโดด (แกน Y)
-predictedPos = predictedPos + Vector3.new(0, math.clamp(velocity.Y * 0.1, 0, 2), 0)
+    -- ชดเชยแกน Y
+    predictedPos = predictedPos + Vector3.new(0, math.clamp(velocity.Y * 0.1, -2, 2), 0)
 
-return CFrame.new(predictedPos)
-
+    return CFrame.new(predictedPos)
 end
 
+-- =========================
+-- 🔫 AUTO EQUIP GUN
+-- =========================
+local lastGunEquip = 0
+
+local function equipGun()
+    if tick() - lastGunEquip < 0.3 then return end
+    lastGunEquip = tick()
+
+    local char = player.Character
+    local backpack = player:FindFirstChild("Backpack")
+
+    if not char or not backpack then return end
+
+    local gun = backpack:FindFirstChild("Gun")
+    if gun then
+        gun.Parent = char
+    end
+end
+
+-- =========================
+-- 🔫 AUTO SHOOT LOOP
+-- =========================
 task.spawn(function()
-while task.wait(0.01) do
-if not AUTO_SHOOT then continue end
+    while task.wait(0.01) do
+        if not AUTO_SHOOT then continue end
 
-local target = findMurderer()
-if not target or not target.Character then continue end
+        local target = findMurderer()
+        if not target or not target.Character then continue end
 
-local char = player.Character
-local gun = char and char:FindFirstChild("Gun")
-if not gun then continue end
+        -- 🔥 ถือปืนอัตโนมัติ
+        equipGun()
 
-local shootEvent = gun:FindFirstChild("Shoot")
-local originPart = gun:FindFirstChild("Handle")
-if not shootEvent or not originPart then continue end
+        local char = player.Character
+        local gun = char and char:FindFirstChild("Gun")
 
-local originCF = originPart.CFrame
-local targetCF = getLeadCFrame(target.Character, originPart.Position)
+        -- ❗ ยังไม่ถือ = ไม่ยิง
+        if not gun then continue end
 
-if targetCF then
-pcall(function()
-shootEvent:FireServer(
-originCF,
-targetCF
-)
+        local shootEvent = gun:FindFirstChild("Shoot")
+        local originPart = gun:FindFirstChild("Handle")
+
+        if not shootEvent or not originPart then continue end
+
+        local originCF = originPart.CFrame
+        local targetCF = getLeadCFrame(target.Character, originPart.Position)
+
+        if targetCF then
+            pcall(function()
+                shootEvent:FireServer(originCF, targetCF)
+            end)
+        end
+    end
 end)
-end
 
-end
-
-end)
 -- =========================
 -- INFINITE JUMP
 -- =========================
