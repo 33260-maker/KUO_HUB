@@ -48,6 +48,8 @@ local CHAT_ANNOUNCE = false
 local Anti_Pling = false
 local AUTO_PUSH = false
 local AUTO_LEECH_MURDER = false
+local LOOP_DELAY = 0.1
+local lastEquip = 0
 
 -- =========================
 -- FLY
@@ -373,183 +375,188 @@ end
 end
 end)
 
-local KNIFE_RANGE = 100
-
-local function getClosestTarget()
-local closest = nil
-local shortest = KNIFE_RANGE
-
-for _, plr in ipairs(Players:GetPlayers()) do
-if plr ~= player and plr.Character and plr.Character:FindFirstChild("HumanoidRootPart") then
-local enemyRoot = plr.Character.HumanoidRootPart
-local dist = (enemyRoot.Position - root.Position).Magnitude
-
-if dist < shortest then
-shortest = dist
-closest = plr
-end
-end
-
-end
-
-return closest
-
-end
-
 -- =========================
--- 🔪 AUTO KNIFE PRO (FIXED)
+-- 🔪 AUTO KNIFE + AUTO EQUIP (FINAL)
 -- =========================
-task.spawn(function()
-while task.wait(0.1) do
-if not AUTO_KNIFE then continue end
-
-local char = player.Character
-local myRoot = char and char:FindFirstChild("HumanoidRootPart")
-local knife = char and char:FindFirstChild("Knife")
-
-if not myRoot or not knife then continue end
-
-local events = knife:FindFirstChild("Events")
-local throw = events and events:FindFirstChild("KnifeThrown")
-if not throw then continue end
-
-for _, plr in ipairs(Players:GetPlayers()) do
-if plr ~= player and plr.Character then
-local root = plr.Character:FindFirstChild("HumanoidRootPart")
-if root then
-
--- 🧠 Predict
-local distance = (myRoot.Position - root.Position).Magnitude
-local prediction = math.clamp(distance / 200, 0.1, 0.3)
-
-local velocity = root.AssemblyLinearVelocity
-local predictedPos = root.Position + (velocity * prediction)
-
-local args = {                
-    CFrame.new(myRoot.Position),                
-    CFrame.new(predictedPos)                
-}                
-  
-throw:FireServer(unpack(args))                
-  
-task.wait(0.02)
-
-end
-
-end
-
-end
-
-end
-
-end)
 
 local Players = game:GetService("Players")
-local lp = Players.LocalPlayer
+local player = Players.LocalPlayer
 
-local LOOP_DELAY = 0.1
-
+-- =========================
+-- 📦 GET CHARACTER
+-- =========================
 local function getChar()
-return lp.Character or lp.CharacterAdded:Wait()
+    return player.Character or player.CharacterAdded:Wait()
 end
 
 local function getHRP()
-local char = getChar()
-if not char then return nil end
-return char:FindFirstChild("HumanoidRootPart")
+    local char = getChar()
+    return char and char:FindFirstChild("HumanoidRootPart")
+end
+
+-- =========================
+-- 🔥 AUTO EQUIP KNIFE
+-- =========================
+local function equipKnife()
+    if tick() - lastEquip < 0.5 then return end
+    lastEquip = tick()
+
+    local char = getChar()
+    local backpack = player:FindFirstChild("Backpack")
+
+    if not char or not backpack then return end
+
+    local knife = backpack:FindFirstChild("Knife")
+    if knife then
+        knife.Parent = char
+    end
 end
 
 local function getKnife()
-local char = getChar()
-if not char then return nil end
-return char:FindFirstChild("Knife")
+    local char = getChar()
+    return char and char:FindFirstChild("Knife")
 end
 
-local function fireKnife(enemyRoot)
-local knife = getKnife()
-if not knife or not enemyRoot then return end
+-- =========================
+-- 🔪 THROW KNIFE
+-- =========================
+local function throwKnife(enemyRoot)
+    local knife = getKnife()
+    if not knife or not enemyRoot then return end
 
-local events = knife:FindFirstChild("Events")
-if not events then return end
+    local events = knife:FindFirstChild("Events")
+    local throw = events and events:FindFirstChild("KnifeThrown")
+    if not throw then return end
 
-local handleTouched = events:FindFirstChild("HandleTouched")
-local stabbed = events:FindFirstChild("KnifeStabbed")
+    local myRoot = getHRP()
+    if not myRoot then return end
 
-if handleTouched then
-handleTouched:FireServer(enemyRoot)
+    -- 🧠 Predict
+    local distance = (myRoot.Position - enemyRoot.Position).Magnitude
+    local prediction = math.clamp(distance / 200, 0.1, 0.3)
+
+    local velocity = enemyRoot.AssemblyLinearVelocity
+    local predictedPos = enemyRoot.Position + (velocity * prediction)
+
+    throw:FireServer(
+        CFrame.new(myRoot.Position),
+        CFrame.new(predictedPos)
+    )
 end
 
-if stabbed then
-stabbed:FireServer()
+-- =========================
+-- 🔪 STAB KNIFE
+-- =========================
+local function stabKnife(enemyRoot)
+    local knife = getKnife()
+    if not knife or not enemyRoot then return end
+
+    local events = knife:FindFirstChild("Events")
+    if not events then return end
+
+    local handleTouched = events:FindFirstChild("HandleTouched")
+    local stabbed = events:FindFirstChild("KnifeStabbed")
+
+    if handleTouched then
+        handleTouched:FireServer(enemyRoot)
+    end
+
+    if stabbed then
+        stabbed:FireServer()
+    end
 end
 
-end
-
+-- =========================
+-- 🎯 FIND TARGET
+-- =========================
 local function getNearestEnemy()
-local hrp = getHRP()
-if not hrp then return nil end
+    local hrp = getHRP()
+    if not hrp then return nil end
 
-local closest = nil
-local distMin = MAX_DISTANCE
+    local closest = nil
+    local distMin = MAX_DISTANCE
 
-for _, plr in pairs(Players:GetPlayers()) do
-if plr ~= lp and plr.Character then
-local root = plr.Character:FindFirstChild("HumanoidRootPart")
+    for _, plr in pairs(Players:GetPlayers()) do
+        if plr ~= player and plr.Character then
+            local root = plr.Character:FindFirstChild("HumanoidRootPart")
+            if root then
+                local dist = (hrp.Position - root.Position).Magnitude
+                if dist < distMin then
+                    distMin = dist
+                    closest = plr
+                end
+            end
+        end
+    end
 
-if root then
-local dist = (hrp.Position - root.Position).Magnitude
-if dist < distMin then
-distMin = dist
-closest = plr
-end
-end
-end
-
-end
-
-return closest
-
+    return closest
 end
 
+-- =========================
+-- 💀 ATTACK (KILL AURA)
+-- =========================
 local function attack(plr)
-local hrp = getHRP()
-if not hrp or not plr.Character then return end
+    equipKnife() -- 🔥 บังคับถือก่อน
 
-local enemyRoot = plr.Character:FindFirstChild("HumanoidRootPart")
-if not enemyRoot then return end
+    local hrp = getHRP()
+    if not hrp or not plr.Character then return end
 
-local old = hrp.CFrame
+    local enemyRoot = plr.Character:FindFirstChild("HumanoidRootPart")
+    if not enemyRoot then return end
 
--- 🔥 หันหน้าเข้าหาเป้าหมายก่อน
-hrp.CFrame = CFrame.lookAt(hrp.Position, enemyRoot.Position)
+    local old = hrp.CFrame
 
--- ⚡ วาปใกล้ตัว
-hrp.CFrame = enemyRoot.CFrame * CFrame.new(0, 0, -2)
+    -- หันหน้า
+    hrp.CFrame = CFrame.lookAt(hrp.Position, enemyRoot.Position)
 
-task.wait(0.05)
+    -- วาร์ปเข้าใกล้
+    hrp.CFrame = enemyRoot.CFrame * CFrame.new(0, 0, -2)
 
--- 🔪 ยิงซ้ำให้ติดง่ายขึ้น
-for i = 1, 3 do
-fireKnife(enemyRoot)
-task.wait(0.03)
+    task.wait(0.05)
+
+    -- 🔪 ยิง + แทง
+    for i = 1, 3 do
+        throwKnife(enemyRoot)
+        stabKnife(enemyRoot)
+        task.wait(0.03)
+    end
+
+    task.wait(0.05)
+
+    -- กลับ
+    hrp.CFrame = old
 end
 
-task.wait(0.05)
-
--- ↩️ กลับ
-hrp.CFrame = old
-
-end
--- 🔁 Loop หลัก (safe)
+-- =========================
+-- 🔁 AUTO KNIFE LOOP
+-- =========================
 task.spawn(function()
-while task.wait(LOOP_DELAY) do
-if KILL_AURA then
-local target = getNearestEnemy()
-if target then
-attack(target)
-end
-end
-end
+    while task.wait(0.1) do
+        if not AUTO_KNIFE then continue end
+
+        local target = getNearestEnemy()
+        if not target or not target.Character then continue end
+
+        local root = target.Character:FindFirstChild("HumanoidRootPart")
+        if root then
+            equipKnife() -- 🔥 ถ้ายังไม่ถือ จะถือก่อน
+            throwKnife(root)
+        end
+    end
+end)
+
+-- =========================
+-- 🔁 KILL AURA LOOP
+-- =========================
+task.spawn(function()
+    while task.wait(LOOP_DELAY) do
+        if not KILL_AURA then continue end
+
+        local target = getNearestEnemy()
+        if target then
+            attack(target)
+        end
+    end
 end)
 
 local TweenService = game:GetService("TweenService")
@@ -904,7 +911,7 @@ end
 })
 Combat:Toggle({
 Title="Kill Aura",
-Desc="ฆ่าทุกคนอัตโนมัติ(ต้องถือมีดก่อนเปิดหรือรอเกมเริ่มแล้วถือมีดไม่งั้นมันจะไม่ฆ่าคนให้)",
+Desc="ฆ่าทุกคนอัตโนมัติ",
 Callback=function(v)
 KILL_AURA=v
 end
@@ -928,7 +935,7 @@ end
 
 Home:Toggle({
 Title="Anti-Pling",
-Desc="กันปลิง(กันคนเปิดโปรมาปลิงเรา)",
+Desc="กันปลิง",
 Callback=function(v)
 Anti_Pling = v
 end
