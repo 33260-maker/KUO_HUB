@@ -376,11 +376,11 @@ end
 end)
 
 -- =========================
--- 🔪 AUTO KNIFE + AUTO EQUIP (FINAL)
+-- 🔪 AUTO KNIFE + AUTO EQUIP (FINAL FIX)
 -- =========================
 
 local Players = game:GetService("Players")
-local player = Players.LocalPlayer
+local player = Players.LocalPlayer -- 🔥 แก้จาก LocalPlayers
 
 -- =========================
 -- 📦 GET CHARACTER
@@ -398,7 +398,7 @@ end
 -- 🔥 AUTO EQUIP KNIFE
 -- =========================
 local function equipKnife()
-    if tick() - lastEquip < 0.5 then return end
+    if tick() - lastEquip < 0.3 then return end
     lastEquip = tick()
 
     local char = getChar()
@@ -431,7 +431,6 @@ local function throwKnife(enemyRoot)
     local myRoot = getHRP()
     if not myRoot then return end
 
-    -- 🧠 Predict
     local distance = (myRoot.Position - enemyRoot.Position).Magnitude
     local prediction = math.clamp(distance / 200, 0.1, 0.3)
 
@@ -496,7 +495,10 @@ end
 -- 💀 ATTACK (KILL AURA)
 -- =========================
 local function attack(plr)
-    equipKnife() -- 🔥 บังคับถือก่อน
+    equipKnife()
+
+    local knife = getKnife()
+    if not knife then return end -- ✅ ต้องถือก่อน
 
     local hrp = getHRP()
     if not hrp or not plr.Character then return end
@@ -506,15 +508,11 @@ local function attack(plr)
 
     local old = hrp.CFrame
 
-    -- หันหน้า
     hrp.CFrame = CFrame.lookAt(hrp.Position, enemyRoot.Position)
-
-    -- วาร์ปเข้าใกล้
     hrp.CFrame = enemyRoot.CFrame * CFrame.new(0, 0, -2)
 
     task.wait(0.05)
 
-    -- 🔪 ยิง + แทง
     for i = 1, 3 do
         throwKnife(enemyRoot)
         stabKnife(enemyRoot)
@@ -523,12 +521,11 @@ local function attack(plr)
 
     task.wait(0.05)
 
-    -- กลับ
     hrp.CFrame = old
 end
 
 -- =========================
--- 🔁 AUTO KNIFE LOOP
+-- 🔁 AUTO KNIFE LOOP (FIX)
 -- =========================
 task.spawn(function()
     while task.wait(0.1) do
@@ -538,24 +535,33 @@ task.spawn(function()
         if not target or not target.Character then continue end
 
         local root = target.Character:FindFirstChild("HumanoidRootPart")
-        if root then
-            equipKnife() -- 🔥 ถ้ายังไม่ถือ จะถือก่อน
-            throwKnife(root)
-        end
+        if not root then continue end
+
+        equipKnife()
+
+        local knife = getKnife()
+        if not knife then continue end -- ✅ กันยิงตอนยังไม่ถือ
+
+        throwKnife(root)
     end
 end)
 
 -- =========================
--- 🔁 KILL AURA LOOP
+-- 🔁 KILL AURA LOOP (FIX)
 -- =========================
 task.spawn(function()
     while task.wait(LOOP_DELAY) do
         if not KILL_AURA then continue end
 
         local target = getNearestEnemy()
-        if target then
-            attack(target)
-        end
+        if not target then continue end
+
+        equipKnife()
+
+        local knife = getKnife()
+        if not knife then continue end -- ✅ ต้องถือก่อน
+
+        attack(target)
     end
 end)
 
