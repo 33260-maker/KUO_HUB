@@ -944,50 +944,6 @@ player.CharacterAdded:Connect(function()
 invisible = false
 setupCharacter()
 end)
-
-local healthConnection
-local infiniteHealthEnabled = false
-
-function ActivateInfiniteHealth(character)  
-    if not character or not character:FindFirstChild("Humanoid") then return end  
-
-    -- 🔥 เคลียร์ของเก่าก่อน
-    if healthConnection then  
-        healthConnection:Disconnect()  
-        healthConnection = nil
-    end  
-
-    local humanoid = character:FindFirstChild("Humanoid")  
-
-    -- 🔥 ทำงานทันทีตอนเปิด
-    if infiniteHealthEnabled then
-        local remote = ReplicatedStorage:FindFirstChild("RemoteEvents")  
-        if remote and remote:FindFirstChild("DamagePlayer") then  
-            remote.DamagePlayer:FireServer(math.huge * -1)  
-        end  
-    end
-
-    -- 🔁 Loop กันตาย
-    healthConnection = humanoid.Changed:Connect(function(prop)  
-        if not infiniteHealthEnabled then return end  
-
-        if prop == "Health" and humanoid.Health < humanoid.MaxHealth then  
-            local remote = ReplicatedStorage:FindFirstChild("RemoteEvents")  
-            if remote and remote:FindFirstChild("DamagePlayer") then  
-                remote.DamagePlayer:FireServer(math.huge * -1)  
-            end  
-        end  
-    end)  
-end  
-
--- 🔄 Respawn รองรับ
-lp.CharacterAdded:Connect(function(char)  
-    task.wait(0.01)  
-    if infiniteHealthEnabled then  
-        ActivateInfiniteHealth(char)  
-    end  
-end)  
-
 -- =========================
 -- UI
 -- =========================
@@ -1068,25 +1024,6 @@ if hum then
 hum.WalkSpeed = v
 end
 end
-
-Combat:Toggle({
-    Title = "God Mode",
-    Desc = "อมตะ",
-    Callback = function(v)
-        infiniteHealthEnabled = v
-
-        if v then
-            local char = lp.Character or lp.CharacterAdded:Wait()
-            ActivateInfiniteHealth(char)
-        else
-            if healthConnection then
-                healthConnection:Disconnect()
-                healthConnection = nil
-            end
-        end
-    end
-})
-
 --========================
 -- SLIDER
 --========================
