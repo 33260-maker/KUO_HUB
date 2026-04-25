@@ -5,7 +5,7 @@ Title = "Kuo Hub [Beta-MM2]",
 })
 
 Window:AddMinimizeButton({
-Button = { Image = "rbxassetid://103308551113442", BackgroundTransparency = 0 },
+Button = { Image = "rbxassetid://126460540157931", BackgroundTransparency = 0 },
 Corner = { CornerRadius = UDim.new(35, 1) },
 })
 
@@ -950,7 +950,7 @@ end)
 Home:AddDiscordInvite({
 Name = "Kuo Hub",
 Description = "Join server",
-Logo = "rbxassetid://103308551113442",
+Logo = "rbxassetid://126460540157931",
 Invite = "https://discord.gg/Apn2j9Fez",
 })
 Home:Toggle({Title="ESP",Desc="ไฮไลต์ผู้เล่น",Callback=function(v) ESP_ENABLED=v end})
